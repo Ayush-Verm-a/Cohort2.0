@@ -39,11 +39,82 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-  const express = require('express');
-  const bodyParser = require('body-parser');
-  
-  const app = express();
-  
-  app.use(bodyParser.json());
-  
-  module.exports = app;
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+app.use(bodyParser.json());
+app.use(express.json());
+
+let todoList = [];
+
+app.get('/todos', (req, res) => {
+    res.status(200).json(todoList);
+})
+
+app.get('/todos/:id', (req, res) => {
+    const todo = todos.find(t => t.id === parseInt(req.params.id));
+    if (!todo) {
+        res.status(404).send();
+    } else {
+        res.json(todo);
+    }
+});
+
+app.post('/todos', (req, res) => {
+    const newTodo = {
+        id: Math.floor(Math.random() * 1000000), // unique random id
+        title: req.body.title,
+        description: req.body.description
+    };
+    todoList.push(newTodo);
+    res.status(201).json(newTodo);
+});
+
+app.put('/todo/:id', (req, res) => {
+    const itemId = req.params.id;
+    const uptodo = req.body;
+    const itempos = todoList.findIndex(item => item.id === itemId);
+    if (itempos == -1) {
+        res.status(404).send();
+    }
+    else {
+        todoList[itempos].title = uptodo.title;
+        todoList[itempos].description = uptodo.description;
+        res.status(200).json(todoList[itempos]);
+    }
+
+})
+
+app.delete('/todo/:id', (req, res) => {
+    const itemId = req.params.id;
+    const newList = todoList.filter(item => {
+        if (item.id === itemId) {
+            found = true;
+            return false;
+        }
+        else {
+            return true;
+        }
+    })
+
+    if (found) {
+        todoList = newList;
+        return res.status(200).send();
+    }
+    else {
+        return res.status(404).send();
+    }
+})
+
+app.get('*', (req, res) => {
+    const msg = "Route not found";
+    res.status(404).send(msg);
+})
+
+// app.listen(3000, () => {
+//     console.log("Server is listening on port 3000")
+// });
+
+module.exports = app;
